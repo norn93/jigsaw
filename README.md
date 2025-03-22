@@ -1,8 +1,12 @@
 # Jigsaw puzzle generator
 
+This is a fork of https://github.com/Draradech/jigsaw, demod at:
+
 https://draradech.github.io/jigsaw/index.html
 
-LICENSE info:
+It has been modified to allow for puzzle pieces to be spaced out, to make it possible to cut them with a CNC router. Perhaps other people can think of other applications.
+
+The original repo has the following LICENSE info:
 
 save function: probably **cc-by-sa**  
 (the save function is pieced together based on a bunch of answers of this stackoverflow:

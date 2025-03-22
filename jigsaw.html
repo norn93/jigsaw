@@ -34,19 +34,21 @@
       function updateseed()     { $("_seed").value =    $("seed").value;          update(); }
       function updatetabsize()  { $("_tabsize").value = $("tabsize").value + "%"; update(); }
       function updatejitter()   { $("_jitter").value =  $("jitter").value + "%";  update(); }
+      function updatespacing()  { $("_spacing").value = $("spacing").value;       update(); }
       function update_seed()    { var val = parseFloat($("_seed").value);    if (!isNaN(val)) { $("seed").value = val; }    updateseed(); }
       function update_tabsize() { var val = parseFloat($("_tabsize").value); if (!isNaN(val)) { $("tabsize").value = val; } updatetabsize(); }
       function update_jitter()  { var val = parseFloat($("_jitter").value);  if (!isNaN(val)) { $("jitter").value = val; }  updatejitter(); }
       
       var a, b, c, d, e, t, j, flip, xi, yi, xn, yn, vertical, offset, width, height, radius;
+      var repeat = false;
       function first() { e = uniform(-j, j); next();}
       function next()  { var flipold = flip; flip = rbool(); a = (flip == flipold ? -e: e); b = uniform(-j, j); c = uniform(-j, j); d = uniform(-j, j); e = uniform(-j, j);}
       function sl()  { return vertical ? height / yn : width / xn; }
       function sw()  { return vertical ? width / xn : height / yn;}
       function ol()  { return offset + sl() * (vertical ? yi : xi); }
       function ow()  { return offset + sw() * (vertical ? xi : yi); }
-      function l(v)  { var ret = ol() + sl() * v; return Math.round(ret * 100) / 100; }
-      function w(v)  { var ret = ow() + sw() * v * (flip ? -1.0 : 1.0); return Math.round(ret * 100) / 100; }
+      function l(v)  { var index = (vertical ? yi : xi); var ret = ol() + sl() * v + spacing*index; return Math.round(ret * 100) / 100; }
+      function w(v)  { var index = (vertical ? xi : yi); var ret = ow() + sw() * v * (flip ? -1.0 : 1.0) + (index-1)*spacing + (repeat ? spacing : 0); return Math.round(ret * 100) / 100; }
       function p0l() { return l(0.0); }
       function p0w() { return w(0.0); }
       function p1l() { return l(0.2); }
@@ -86,15 +88,33 @@
          {
             xi = 0;
             first();
+            repeat = false;
             str += "M " + p0l() + "," + p0w() + " ";
+            var random_variables = [];
             for (; xi < xn; ++xi)
             {
                str += "C " + p1l() + " " + p1w() + " " + p2l() + " " + p2w() + " " + p3l() + " " + p3w() + " ";
                str += "C " + p4l() + " " + p4w() + " " + p5l() + " " + p5w() + " " + p6l() + " " + p6w() + " ";
-               str += "C " + p7l() + " " + p7w() + " " + p8l() + " " + p8w() + " " + p9l() + " " + p9w() + " ";
+               str += "C " + p7l() + " " + p7w() + " " + p8l() + " " + p8w() + " " + p9l() + " " + p9w() + " ";       
+               str += "m "+ spacing + " 0";
+               random_variables.push([flip, a, b, c, d, e]);
+               next();
+            }
+            // Now do it again, but a little lower
+            repeat = true;
+            xi = 0;
+            str += "M " + p0l() + "," + p0w() + " ";
+            for (; xi < xn; ++xi)
+            {
+               [flip, a, b, c, d, e] = random_variables[xi];
+               str += "C " + p1l() + " " + p1w() + " " + p2l() + " " + p2w() + " " + p3l() + " " + p3w() + " ";
+               str += "C " + p4l() + " " + p4w() + " " + p5l() + " " + p5w() + " " + p6l() + " " + p6w() + " ";
+               str += "C " + p7l() + " " + p7w() + " " + p8l() + " " + p8w() + " " + p9l() + " " + p9w() + " ";       
+               str += "m "+ spacing + " 0";
                next();
             }
          }
+         
          return str;
       }
          
@@ -107,12 +127,29 @@
          {
             yi = 0;
             first();
+            repeat = false;
             str += "M " + p0w() + "," + p0l() + " ";
+            var random_variables = [];
             for (; yi < yn; ++yi)
             {
                str += "C " + p1w() + " " + p1l() + " " + p2w() + " " + p2l() + " " + p3w() + " " + p3l() + " ";
                str += "C " + p4w() + " " + p4l() + " " + p5w() + " " + p5l() + " " + p6w() + " " + p6l() + " ";
                str += "C " + p7w() + " " + p7l() + " " + p8w() + " " + p8l() + " " + p9w() + " " + p9l() + " ";
+               str += "m 0 " + spacing + " ";
+               random_variables.push([flip, a, b, c, d, e]);
+               next();
+            }
+            // Now do it again, but a little lower
+            repeat = true;
+            yi = 0;
+            str += "M " + p0w() + "," + p0l() + " ";
+            for (; yi < yn; ++yi)
+            {
+               [flip, a, b, c, d, e] = random_variables[yi];;
+               str += "C " + p1w() + " " + p1l() + " " + p2w() + " " + p2l() + " " + p3w() + " " + p3l() + " ";
+               str += "C " + p4w() + " " + p4l() + " " + p5w() + " " + p5l() + " " + p6w() + " " + p6l() + " ";
+               str += "C " + p7w() + " " + p7l() + " " + p8w() + " " + p8l() + " " + p9w() + " " + p9l() + " ";
+               str += "m 0 " + spacing + " ";
                next();
             }
          }
@@ -124,12 +161,12 @@
          var str = "";
          
          str += "M " + (offset + radius) + " " + (offset) + " ";
-         str += "L " + (offset + width - radius) + " " + (offset) + " ";
-         str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + width) + " " + (offset + radius) + " ";
-         str += "L " + (offset + width) + " " + (offset + height - radius) + " ";
-         str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + width - radius) + " " + (offset + height) + " ";
-         str += "L " + (offset + radius) + " " + (offset + height) + " ";
-         str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset) + " " + (offset + height - radius) + " ";
+         str += "L " + (offset + width - radius + spacing * (xn-1)) + " " + (offset) + " ";
+         str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + width + spacing * (xn-1)) + " " + (offset + radius) + " ";
+         str += "L " + (offset + width + spacing * (xn-1)) + " " + (offset + height + spacing * (yn-1) - radius) + " ";
+         str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + width + spacing * (xn-1) - radius) + " " + (offset + height + spacing * (yn-1)) + " ";
+         str += "L " + (offset + radius) + " " + (offset + height + spacing * (yn-1)) + " ";
+         str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset) + " " + (offset + height + spacing * (yn-1) - radius) + " ";
          str += "L " + (offset) + " " + (offset + radius) + " ";
          str += "A " + (radius) + " " + (radius) + " 0 0 1 " + (offset + radius) + " " + (offset) + " ";
          return str;
@@ -140,6 +177,9 @@
          width = parseInt($("width").value);
          height = parseInt($("height").value);
          radius = parseFloat($("radius").value);
+         xn = parseInt($("xn").value);
+         yn = parseInt($("yn").value);
+
          var ratio = 1.0 * width / height;
          if (ratio > 1.5)
          {
@@ -153,8 +193,11 @@
             height = 600;
             width = height * ratio;
          }
-         $("puzzlecontainer").setAttribute("width", width + 30);
-         $("puzzlecontainer").setAttribute("height", height + 30);
+
+         spacing = parseInt($("spacing").value);
+
+         $("puzzlecontainer").setAttribute("width", width + 30 + spacing * xn);
+         $("puzzlecontainer").setAttribute("height", height + 30 + spacing * yn);
          offset = 15;
          parse_input();
          $("puzzlepath_h").setAttribute("d", gen_dh());
@@ -218,6 +261,10 @@
       <tr>
          <td>Size:</td>
          <td><input id="width" type="text" value="300" size="4" onchange="update()"/> x <input id="height" type="text" value="200"  size="4" onchange="update()"/> mm</td>
+      </tr>
+      <tr>
+         <td>Spacing:</td>
+         <td><input id="spacing" type="text" value="10" size="4" onchange="update()"/>  arbitrary units</td>
          <td><button onclick="generate()">Download SVG</button></td>
       </tr>
    </table>
